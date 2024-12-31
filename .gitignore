@@ -1,0 +1,7 @@
+/**/.vscode
+/**/CMakeCache
+/build/**
+!/build/GasFiles
+!/build/GasFiles/**
+!/build/neBEMOut
+!/build/neBEMOut/**

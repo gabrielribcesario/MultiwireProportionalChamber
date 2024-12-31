@@ -1,0 +1,11 @@
+#!/bin/bash
+
+CUR_DIR="$(dirname "$0")"
+
+rootcling -f ${CUR_DIR}/../lib/libCustomContainers.cpp -c -I${CUR_DIR}/../include \
+          -I${ROOTSYS}/include CustomContainers.hpp ROOT/RVec.hxx vector Linkdef.hpp
+
+g++ ${CUR_DIR}/../lib/libCustomContainers.cpp `root-config --glibs --cflags --libs` \
+    -I${CUR_DIR}/../include -I${ROOTSYS}/include -o ${CUR_DIR}/../lib/libCustomContainers.so -shared -fPIC -O2
+
+rm ${CUR_DIR}/../lib/libCustomContainers.cpp
