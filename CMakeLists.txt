@@ -17,6 +17,10 @@ add_executable(generate_gas ${SRC}/generate_gas.cpp)
 target_compile_options(generate_gas PRIVATE "-O2")
 target_link_libraries(generate_gas Garfield::Garfield ROOT::RIO)
 
+add_executable(test ${SRC}/test.cpp)
+target_compile_options(test PRIVATE "-O2")
+target_link_libraries(test Garfield::Garfield ROOT::RIO)
+
 add_executable(view_field ${SRC}/view_field.cpp)
 target_compile_options(view_field PRIVATE "-O2")
 target_link_libraries(view_field Garfield::Garfield ROOT::RIO)

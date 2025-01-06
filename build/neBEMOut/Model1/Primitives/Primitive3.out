@@ -11,6 +11,6 @@ Primitive lengths: 1e-05	0.1
 #NbSegs: 100
 #ParentObj: 1	EType: 1
 #WireR: 1e-05	WireL: 0.1
-#SurfLambda: 0	SurfV: -2100
+#SurfLambda: 0	SurfV: 2100
 Element begin: 201, Element end: 300
 Number of elements on primitive: 100

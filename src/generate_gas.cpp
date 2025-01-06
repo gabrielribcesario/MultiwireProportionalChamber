@@ -16,9 +16,9 @@ int main(int argc, char * argv[]) {
     // Recommended value is nCollisions >= 10.
     const int nCollisions = 10;
     // Number of electric field points to be evaluated.
-    const size_t nE = 50;
+    const size_t nE = 40;
     // Sets the electric field range [V/cm] to be covered by the gas table. 
-    const double Emin = 100., Emax = 100.E3;
+    const double Emin = 100., Emax = 1000.E3;
     // Flag to request logarithmic spacing.
     constexpr bool useLog = true;
 
@@ -28,12 +28,12 @@ int main(int argc, char * argv[]) {
     const double gas_temperature = 293.15;
 
     // .gas file name.
-    const std::string gas_name = "Ar_81_CO2_5_Xe_14";
+    const std::string gas_name = "Ar_80_CO2_20";
     // Saves the gas files here. 
     const std::string gas_folder = "./GasFiles/";  
 
     // Sets the gas composition, temperature and pressure.
-    MediumMagboltz gas("Ar", 81., "CO2", 5., "Xe", 14.);
+    MediumMagboltz gas("Ar", 80., "CO2", 20.);
     gas.SetTemperature(gas_temperature);
     gas.SetPressure(gas_pressure);
     
@@ -43,6 +43,7 @@ int main(int argc, char * argv[]) {
     // Runs Magboltz to generate the gas table.
     gas.GenerateGasTable(nCollisions, true);
 
+    // Merges the previous gas table with the current one if it exists.
     if(std::filesystem::exists(gas_folder + "/" + gas_name + ".gas")) {
         gas.MergeGasFile(gas_folder + "/" + gas_name + ".gas", true);
     }

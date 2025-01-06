@@ -39,21 +39,21 @@ int main(int argc, char* argv[]) {
     MediumConductor metal;
     MediumMagboltz gas;
 
-    // Upper cathode wires plane, parallel to the z-axis.
+    // Upper cathode wires plane, parallel to the x-axis.
     SolidWire cathodeWireU(0., 0., acGap, 
                            cathodeDiameter / 2., wireLength / 2., 
                            1., 0., 0.);
     cathodeWireU.SetBoundaryPotential(cathodeV);
     cathodeWireU.SetLabel("CathodeWireUpper");
 
-    // Lower cathode wires plane, parallel to the z-axis.
+    // Lower cathode wires plane, parallel to the x-axis.
     SolidWire cathodeWireL(0., 0., -acGap, 
                            cathodeDiameter / 2., wireLength / 2., 
                            1., 0., 0.);
     cathodeWireL.SetBoundaryPotential(cathodeV);
     cathodeWireL.SetLabel("CathodeWireLower");
 
-    // Anode wires plane, parallel to the x-axis.
+    // Anode wires plane, parallel to the y-axis.
     SolidWire anodeWire(0., 0., 0., 
                         anodeDiameter / 2., wireLength / 2., 
                         0., 1., 0.);
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     mwpcGeo.AddSolid(&anodeWire, &metal);
     
     // neBEM element size.
-    const double elementSize = anodeDiameter < cathodeDiameter ? anodeDiameter : cathodeDiameter;
+    const double elementSize = anodeDiameter < cathodeDiameter ? anodeDiameter / 2. : cathodeDiameter / 2.;
 
     ComponentNeBem3d mwpc;
     mwpc.SetGeometry(&mwpcGeo);
@@ -79,15 +79,19 @@ int main(int argc, char* argv[]) {
     mwpc.Initialise();
     
     ViewField fieldViewXZ(&mwpc);
-    fieldViewXZ.SetArea(-anodeSpacing * 2., -acGap * 1.2, 
-                         anodeSpacing * 2.,  acGap * 1.2);
+    fieldViewXZ.SetArea(-cathodeSpacing * 2., -acGap,// * 1.2, 
+                         cathodeSpacing * 2.,  acGap);// * 1.2);
     fieldViewXZ.SetPlaneXZ();
+    //fieldViewXZ.SetElectricFieldRange(1.E3, 100.E3);
+    //fieldViewXZ.PlotContour("e");
     fieldViewXZ.PlotContour();
     
     ViewField fieldViewYZ(&mwpc);
-    fieldViewYZ.SetArea(-cathodeSpacing * 2., -acGap * 1.2, 
-                         cathodeSpacing * 2.,  acGap * 1.2);
+    fieldViewYZ.SetArea(-cathodeSpacing * 2., -acGap,// * 1.2, 
+                         cathodeSpacing * 2.,  acGap);// * 1.2);
     fieldViewYZ.SetPlaneYZ();
+    //fieldViewYZ.SetElectricFieldRange(1.E3, 100.E3);
+    //fieldViewYZ.PlotContour("e");
     fieldViewYZ.PlotContour();
 
     ViewGeometry geoView(&mwpcGeo);
