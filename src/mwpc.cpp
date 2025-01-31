@@ -7,8 +7,6 @@
 #include <TTree.h>
 #include <TFile.h>
 #include <TSystem.h>
-#include <TApplication.h>
-#include <TCanvas.h>
 
 #include <Garfield/SolidWire.hh>
 #include <Garfield/GeometrySimple.hh>
@@ -30,8 +28,6 @@ double Uniform(double a, double b) { return (b - a) * Garfield::RndmUniform() + 
 int main(int argc, char* argv[]) {
     // Loads the custom container library onto the ROOT system.
     gSystem->Load("libCustomContainers.so");
-
-    TApplication app("app", &argc, argv);
 
     // Creates a new .root results file. Compression algorithms: https://root.cern.ch/doc/master/Compression_8h_source.html
     // ZSTD is about as fast as LZ4 due to the ROOT IO API bottleneck, but has a much higher compression ratio.
@@ -75,21 +71,21 @@ int main(int argc, char* argv[]) {
                            cathodeDiameter / 2., wireLength / 2., 
                            1., 0., 0.);
     cathodeWireU.SetBoundaryPotential(cathodeV);
-    cathodeWireU.SetLabel("CathodeWireUpper");
+    //cathodeWireU.SetLabel("CathodeWireUpper");
 
     // Lower cathode wires plane, parallel to the x-axis.
     SolidWire cathodeWireL(0., 0., -acGap, 
                            cathodeDiameter / 2., wireLength / 2., 
                            1., 0., 0.);
     cathodeWireL.SetBoundaryPotential(cathodeV);
-    cathodeWireL.SetLabel("CathodeWireLower");
+    //cathodeWireL.SetLabel("CathodeWireLower");
 
     // Anode wires plane, parallel to the y-axis.
     SolidWire anodeWire(0., 0., 0., 
                         anodeDiameter / 2., wireLength / 2., 
                         0., 1., 0.);
     anodeWire.SetBoundaryPotential(anodeV);
-    anodeWire.SetLabel("AnodeWire");
+    //anodeWire.SetLabel("AnodeWire");
 
     GeometrySimple mwpcGeo;
     mwpcGeo.SetMedium(&gas);
@@ -106,41 +102,15 @@ int main(int argc, char* argv[]) {
     mwpc.SetPeriodicityY(cathodeSpacing);
     mwpc.SetTargetElementSize(elementSize);
     mwpc.UseLUInversion();
-    mwpc.SetNumberOfThreads(8);
+    mwpc.SetNumberOfThreads(36);
     mwpc.Initialise();
-
-    // Signal calculation initial time [ns].
-    double tStart = 0.;
-    // Signal calculation end time [ns].
-    double tStop = 100.;
-    // Number of signal bins.
-    const int nBins = 1000;
-
-    const double tStep = (tStop - tStart) / nBins;
 
     // Creates the interface between the transport classes and the component.
     Sensor sensor;
     sensor.AddComponent(&mwpc);
-    //sensor.AddElectrode(&mwpc, "CathodeWireUpper");
-    //sensor.AddElectrode(&mwpc, "CathodeWireLower");
-    sensor.AddElectrode(&mwpc, "AnodeWire");
-    sensor.SetTimeWindow(tStart, tStep, nBins);
     sensor.SetArea(-wireLength / 2., -wireLength / 2., -1.1 * (acGap + cathodeDiameter / 2.),
                     wireLength / 2.,  wireLength / 2.,  1.1 * (acGap + cathodeDiameter / 2.));
 
-    // Lower cathode wires induced current [fC/ns].
-    double sigLowerCathode[nBins];
-    // Upper cathode wires induced current [fC/ns].
-    double sigUpperCathode[nBins];
-    // Anode wires induced current [fC/ns].
-    double sigAnode[nBins];
-
-    TTree signalTree("Signals", "Signal data");
-    signalTree.Branch("TimeStart", &tStart);
-    signalTree.Branch("TimeStop", &tStop);
-    signalTree.Branch("LowerCathodeCurrent", sigLowerCathode, ("LowerCathodeCurrent[" + std::to_string(nBins) + "]").c_str());
-    signalTree.Branch("UpperCathodeCurrent", sigUpperCathode, ("UpperCathodeCurrent[" + std::to_string(nBins) + "]").c_str());
-    signalTree.Branch("AnodeCurrent", sigAnode, ("Anode[" + std::to_string(nBins) + "]").c_str());
 
     // DriftLineRKF maximum step size.
     const double RKFStepSize = 0.001;
@@ -151,8 +121,6 @@ int main(int argc, char* argv[]) {
     DriftLineRKF driftRKF(&sensor);
     driftRKF.SetMaximumStepSize(RKFStepSize);
     driftRKF.SetIntegrationAccuracy(RKFepsilon);
-    driftRKF.EnableSignalCalculation();
-    driftRKF.EnableIonTail();
 
     std::printf("DriftLineRKF max step size [cm]: %.6f\n", RKFStepSize);
     std::printf("DriftLineRKF integration accuracy: %.6f\n", RKFepsilon);
@@ -249,24 +217,10 @@ int main(int argc, char* argv[]) {
             primaryTree.Fill();
         }
         primaryTree.Write(nullptr, TObject::kWriteDelete);
-
-        for (int bin = 0; bin < nBins; bin++) {
-            //sigLowerCathode[bin] = sensor.GetSignal("LowerCathodeWire", bin);
-            //sigUpperCathode[bin] = sensor.GetSignal("UpperCathodeWire", bin);
-            sigAnode[bin] = sensor.GetSignal("AnodeWire", bin);
-        }
-        signalTree.Fill();
-        signalTree.Write(nullptr, TObject::kWriteDelete);
-
-        //sensor.ClearSignal();
     }
-    TCanvas c1("c", "", 600, 600);
-    sensor.PlotSignal("AnodeWire", &c1);
     eventResults.Close();
 
     std::printf("Done.\n");
-
-    app.Run();
 
     return 0;
 }
