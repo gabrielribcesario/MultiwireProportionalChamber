@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
-project(MultiwireProportionalCounter LANGUAGES CXX)
+project(MultiwireProportionalCounter LANGUAGES C CXX)
 
 find_package(ROOT REQUIRED COMPONENTS RIO Tree)
 find_package(Garfield REQUIRED)
+find_package(OpenMP REQUIRED)
 
 set(SRC "${CMAKE_CURRENT_LIST_DIR}/src")
 set(LIB "${CMAKE_CURRENT_LIST_DIR}/lib")
@@ -23,4 +24,4 @@ target_link_libraries(view_field Garfield::Garfield ROOT::RIO)
 
 add_executable(mwpc ${SRC}/mwpc.cpp)
 target_compile_options(mwpc PRIVATE "-fopenmp;-O3")
-target_link_libraries(mwpc ${LIB}/libCustomContainers.so Garfield::Garfield ROOT::RIO ROOT::Tree)
+target_link_libraries(mwpc ${LIB}/libCustomContainers.so Garfield::Garfield ROOT::RIO ROOT::Tree OpenMP::OpenMP_CXX)
