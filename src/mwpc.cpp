@@ -18,9 +18,9 @@
 #include <Garfield/MediumMagboltz.hh>
 #include <Garfield/DriftLineRKF.hh>
 #include <Garfield/TrackHeed.hh>
-#include <Garfield/Random.hh>
 
 #include "CustomContainers.hpp"
+#include "Utility.hpp"
 
 // Relative probabilities per 100 disintegrations given the Fe-55 X-Ray emissions table.
 
@@ -36,16 +36,15 @@
 
 using namespace Garfield;
 
-// Samples a uniform distribution X ~ U(a,b).
-double Uniform(double a, double b) { return (b - a) * Garfield::RndmUniform() + a; }
-
 int main(int argc, char* argv[]) {
     // Loads the custom container library onto the ROOT system.
     gSystem->Load("libCustomContainers.so");
 
+    const std::string resultsDir = InitializeDir("SimulationResults");
+
     // Creates a new .root results file. Compression algorithms: https://root.cern.ch/doc/master/Compression_8h_source.html
     // ZSTD is about as fast as LZ4 due to the ROOT IO API bottleneck, but has a much higher compression ratio.
-    TFile eventResults("./SimulationResults.root", "recreate", "", 
+    TFile eventResults((resultsDir + "/SimulationOutput.root").c_str(), "create", "", 
                        ROOT::RCompressionSetting::EDefaults::kUseGeneralPurpose);
 
     // Sets the gas and its composition.
@@ -130,12 +129,12 @@ int main(int argc, char* argv[]) {
 
 
     // DriftLineRKF maximum step size.
-    const double RKFStepSize = 0.001;
+    const double RKFStepSize = 0.01;
     // DriftLineRKF integration accuracy.
-    const double RKFepsilon = 1.E-6;
+    const double RKFepsilon = 1.E-7;
 
-    std::printf("DriftLineRKF max step size [cm]: %.6f\n", RKFStepSize);
-    std::printf("DriftLineRKF integration accuracy: %.6f\n", RKFepsilon);
+    std::printf("DriftLineRKF max step size [cm]: %#g\n", RKFStepSize);
+    std::printf("DriftLineRKF integration accuracy: %#g\n", RKFepsilon);
 
     // Primary electron initial point, (x0, y0, z0, t0).
     CustomContainer::Position4D primaryInit;
@@ -154,7 +153,7 @@ int main(int argc, char* argv[]) {
     // # of ions at the end of the ion tail.
     double nIon = 0.0;
 
-    TTree primaryTree("DriftLines", "Drift lines data");
+    TTree primaryTree("DriftData", "Drift lines data");
     primaryTree.Branch("InitialPoint", &primaryInit);
     primaryTree.Branch("Endpoint", &primaryEndP);
     primaryTree.Branch("Status", &status);
@@ -167,25 +166,32 @@ int main(int argc, char* argv[]) {
     // Class responsible for the primary ionizations calculations.
     TrackHeed track(&sensor);
 
-    const size_t nEvents = 10;
+    const size_t nEvents = 1000;
 
-    TH1D trackHist("Fe55Spectrum", "Fe-55 Spectrum", (int) (log2(nEvents) + 1.0), 0, 250);
+    TH1D trackHist("PhotonConversion", "X-ray Energy Spectrum", 100, 0, 250);
 
     for (int i = 0; i < nEvents ; i++) {  
         // Photon initial point, (x0, y0, z0, t0).
-        CustomContainer::Position4D photonInit(Uniform(-0.1, 0.1), Uniform(-0.1, 0.1), 1.1 * (acGap + cathodeDiameter / 2.0), 0.0);
+        CustomContainer::Position4D photonInit;
         // Photon initial direction, (dx, dy, dz).
-        CustomContainer::Direction3D photonDir(Uniform(-0.1, 0.1), Uniform(-0.1, 0.1), -1.0);
+        CustomContainer::Direction3D photonDir;
         // Photon energy [eV].
-        double photonEnergy = Uniform(0.0, KALPHA1_P + KALPHA2_P + KBETA_P);
-        photonEnergy = photonEnergy < KBETA_P ? KBETA_E : photonEnergy < KBETA_P + KALPHA1_P ? KALPHA1_E : KALPHA2_E; 
+        double photonEnergy = 0.0;
         // Number of electron-ion pairs produced by the photon.
         int nPel = 0;  
 
-        track.TransportPhoton(photonInit.GetX(), photonInit.GetY(), photonInit.GetZ(), photonInit.GetT(),
-                              photonEnergy, 
-                              photonDir.GetDX(), photonDir.GetDY(), photonDir.GetDZ(),
-                              nPel);
+        while (!nPel) {
+            photonInit.SetValue(Uniform(-0.05, 0.05), Uniform(-0.05, 0.05), 1.1 * (acGap + cathodeDiameter / 2.0), 0.0);
+            photonDir.SetValue(Uniform(-0.05, 0.05), Uniform(-0.05, 0.05), -1.0);
+
+            double prob = Uniform(0.0, KALPHA1_P + KALPHA2_P + KBETA_P);
+            photonEnergy = prob < KBETA_P ? KBETA_E : prob < KBETA_P + KALPHA1_P ? KALPHA1_E : KALPHA2_E; 
+
+            track.TransportPhoton(photonInit.GetX(), photonInit.GetY(), photonInit.GetZ(), photonInit.GetT(),
+                                  photonEnergy, 
+                                  photonDir.GetDX(), photonDir.GetDY(), photonDir.GetDZ(),
+                                  nPel);
+        }
 
         trackHist.Fill(nPel);
 

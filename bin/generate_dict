@@ -2,6 +2,8 @@
 
 CUR_DIR="$(dirname "$0")"
 
+mkdir -p ${CUR_DIR}/../lib
+
 rootcling -f ${CUR_DIR}/../lib/libCustomContainers.cpp -c -I${CUR_DIR}/../include \
           -I${ROOTSYS}/include CustomContainers.hpp ROOT/RVec.hxx vector Linkdef.hpp
 

@@ -1,5 +1,5 @@
-#ifndef __CUSTOMCONTAINERS_HPP__
-#define __CUSTOMCONTAINERS_HPP__
+#ifndef CUSTOMCONTAINERS_HPP
+#define CUSTOMCONTAINERS_HPP
 
 #include <cstdlib>
 #include <cmath>

@@ -1,1 +1,2 @@
 /build/neBEMOut/** -linguist-detectable
+/Doc/** linguist-documentation

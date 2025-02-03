@@ -16,9 +16,9 @@ int main(int argc, char * argv[]) {
     // Recommended value is nCollisions >= 10.
     const int nCollisions = 10;
     // Number of electric field points to be evaluated.
-    const size_t nE = 40;
+    const size_t nE = 20;
     // Sets the electric field range [V/cm] to be covered by the gas table. 
-    const double Emin = 100., Emax = 1000.E3;
+    const double Emin = 100., Emax = 100.E3;
     // Flag to request logarithmic spacing.
     constexpr bool useLog = true;
 
@@ -28,15 +28,15 @@ int main(int argc, char * argv[]) {
     const double gas_temperature = 293.15;
 
     // .gas file name.
-    const std::string gas_name = "Ar_80_CO2_20";
+    const std::string gas_name = "Ar_75_iC4H10_25";
     // Saves the gas files here. 
     const std::string gas_folder = "./GasFiles/";  
 
     // Sets the gas composition, temperature and pressure.
-    MediumMagboltz gas("Ar", 80., "CO2", 20.);
+    MediumMagboltz gas("Ar", 75., "iC4H10", 25.);
     gas.SetTemperature(gas_temperature);
     gas.SetPressure(gas_pressure);
-    
+
     // Sets the points of evaluation.
     gas.SetFieldGrid(Emin, Emax, nE, useLog); 
 
