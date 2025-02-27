@@ -4,10 +4,10 @@ CUR_DIR="$(dirname "$0")"
 
 mkdir -p ${CUR_DIR}/../lib
 
-rootcling -f ${CUR_DIR}/../lib/libCustomContainers.cpp -c -I${CUR_DIR}/../include \
-          -I${ROOTSYS}/include CustomContainers.hpp ROOT/RVec.hxx vector Linkdef.hpp
+rootcling -f ${CUR_DIR}/../lib/libCustomContainers.cc -c -I${CUR_DIR}/../include \
+          -I${ROOTSYS}/include CustomContainers.hh ROOT/RVec.hxx vector Linkdef.hh
 
-g++ ${CUR_DIR}/../lib/libCustomContainers.cpp `root-config --glibs --cflags --libs` \
+g++ ${CUR_DIR}/../lib/libCustomContainers.cc `root-config --glibs --cflags --libs` \
     -I${CUR_DIR}/../include -I${ROOTSYS}/include -o ${CUR_DIR}/../lib/libCustomContainers.so -shared -fPIC -O2
 
-rm ${CUR_DIR}/../lib/libCustomContainers.cpp
+rm ${CUR_DIR}/../lib/libCustomContainers.cc

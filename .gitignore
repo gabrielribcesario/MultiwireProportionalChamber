@@ -3,3 +3,5 @@
 /build/**
 !/build/GasFiles
 !/build/GasFiles/**
+!/build/SimulationResults
+!/build/SimulationResults/SimulationOutput.root
